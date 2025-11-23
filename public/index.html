@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-dark">
+<head>
+  <meta charset="UTF-8" />
+  <title>ZYLAE – Node Player</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Fonts + Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+  />
+
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-circle">Z</div>
+        <span class="logo-text">ZYLAE</span>
+        <button id="sidebar-toggle" class="icon-button">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-view="home">
+          <i class="fas fa-home"></i><span>Home</span>
+        </button>
+        <button class="nav-item" data-view="search">
+          <i class="fas fa-search"></i><span>Search</span>
+        </button>
+        <button class="nav-item" data-view="library">
+          <i class="fas fa-music"></i><span>Your Library</span>
+        </button>
+        <button class="nav-item" data-view="settings">
+          <i class="fas fa-gear"></i><span>Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="sidebar-footer-text">Node Edition</span>
+      </div>
+    </aside>
+
+    <!-- Main content -->
+    <main id="main" class="main">
+      <!-- Top Bar -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button id="mobile-sidebar-toggle" class="icon-button hide-desktop">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="breadcrumbs">Home</div>
+        </div>
+        <div class="topbar-right">
+          <div class="theme-toggle-wrap">
+            <button id="theme-toggle" class="pill-button">
+              <i class="fas fa-moon"></i>
+              <span>Dark</span>
+            </button>
+          </div>
+          <div class="user-avatar">
+            <span>S</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- Views container -->
+      <section id="view-container" class="view-container">
+        <!-- HOME VIEW -->
+        <section id="view-home" class="view active">
+          <h1 class="view-title">Welcome back</h1>
+          <p class="view-subtitle">
+            Discover, stream, and download from JioSaavn via ZYLAE with a modern, fluid experience.
+          </p>
+
+          <div class="cards-grid">
+            <div class="card">
+              <h2>Quick Search</h2>
+              <p>Jump straight into a song or artist. Try “Malayalam hits 2024”.</p>
+              <form id="quick-search-form" class="search-form-inline">
+                <input
+                  type="text"
+                  id="quick-search-input"
+                  placeholder="Search songs, artists, albums..."
+                  autocomplete="off"
+                />
+                <button type="submit" class="primary-button">
+                  <i class="fas fa-search"></i> Search
+                </button>
+              </form>
+            </div>
+
+            <div class="card">
+              <h2>Recently Played</h2>
+              <p>Your last played tracks will appear here (powered by player history).</p>
+              <ul id="recently-played-list" class="list-unstyled small-list"></ul>
+            </div>
+
+            <div class="card">
+              <h2>Smart Autoplay</h2>
+              <p>
+                Recommendations, anti-repeat logic & embeddings-based picks are powered by your player.js.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- SEARCH VIEW -->
+        <section id="view-search" class="view">
+          <h1 class="view-title">Search</h1>
+          <form id="search-form" class="search-form">
+            <input
+              type="text"
+              id="search-input"
+              placeholder="Search for songs, albums, artists..."
+              autocomplete="off"
+            />
+            <button type="submit" class="primary-button">
+              <i class="fas fa-search"></i> Search
+            </button>
+          </form>
+
+          <div id="search-status" class="status-text"></div>
+
+          <div id="search-results" class="results-list"></div>
+        </section>
+
+        <!-- LIBRARY VIEW -->
+        <section id="view-library" class="view">
+          <h1 class="view-title">Your Library</h1>
+          <p class="view-subtitle">
+            You can later wire this to liked songs / custom playlists (stored in localStorage or a DB).
+          </p>
+          <div class="placeholder-box">
+            <p>Coming soon: playlists, favorites, and more.</p>
+          </div>
+        </section>
+
+        <!-- SETTINGS VIEW -->
+        <section id="view-settings" class="view">
+          <h1 class="view-title">Settings</h1>
+          <p class="view-subtitle">
+            Tweak playback, downloads, viewport & appearance. Settings are stored locally and applied without full refresh, except where noted.
+          </p>
+
+          <div class="settings-grid">
+            <!-- Bitrate -->
+            <div class="settings-card">
+              <h2>Audio Quality</h2>
+              <label for="bitrate-select">Default stream bitrate</label>
+              <select id="bitrate-select">
+                <option value="12kbps">12 kbps (Ultra low)</option>
+                <option value="48kbps">48 kbps (Low)</option>
+                <option value="96kbps">96 kbps (Medium)</option>
+                <option value="160kbps">160 kbps (High)</option>
+                <option value="320kbps" selected>320 kbps (Very High)</option>
+              </select>
+              <p class="hint">
+                Applies to the <strong>next</strong> songs you play. Existing song continues at its current quality.
+              </p>
+            </div>
+
+            <!-- Download settings -->
+            <div class="settings-card">
+              <h2>Downloads</h2>
+              <label>
+                <input type="checkbox" id="downloads-enable" checked />
+                Enable MP3 downloads (via Node + FFmpeg)
+              </label>
+              <p class="hint">
+                Click the download icon next to a track to download with full ID3 metadata.
+              </p>
+            </div>
+
+            <!-- Playback -->
+            <div class="settings-card">
+              <h2>Playback</h2>
+              <label>
+                <input type="checkbox" id="autoplay-toggle" checked />
+                Smart autoplay after song ends
+              </label>
+              <label>
+                <input type="checkbox" id="save-volume-toggle" checked />
+                Remember volume across sessions
+              </label>
+              <p class="hint">
+                Smart autoplay uses suggestions & anti-repeat rules from your player.js file.
+              </p>
+            </div>
+
+            <!-- Appearance -->
+            <div class="settings-card">
+              <h2>Appearance</h2>
+              <label>
+                <input type="radio" name="theme-mode" value="dark" checked />
+                Dark mode
+              </label>
+              <label>
+                <input type="radio" name="theme-mode" value="light" />
+                Light mode
+              </label>
+              <p class="hint">
+                Theme updates instantly and is persisted in localStorage.
+              </p>
+            </div>
+
+            <!-- Viewport changer -->
+            <div class="settings-card">
+              <h2>Viewport changer</h2>
+              <label for="viewport-select">Simulated device viewport</label>
+              <select id="viewport-select">
+                <option value="default">Automatic (device default)</option>
+                <option value="android-phone">Android phone</option>
+                <option value="ios-phone">iOS phone</option>
+                <option value="android-tv">Android TV (1080p)</option>
+                <option value="desktop-wide">Desktop wide</option>
+              </select>
+              <p class="hint">
+                Helpful for testing different device layouts. After modifying this setting, the page must reload to take effect.
+              </p>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <!-- Audio element (hidden) -->
+      <audio id="audio-player"></audio>
+
+      <!-- Now Playing Bar (bottom) -->
+      <div id="now-playing-bar" class="now-playing-bar hidden">
+        <div class="np-click-overlay" id="np-click-overlay"></div>
+
+        <div class="np-left">
+          <img id="np-art" class="np-art" src="" alt="Cover" />
+          <div class="np-meta">
+            <div id="np-title" class="np-title">–</div>
+            <div id="np-artist" class="np-artist">–</div>
+          </div>
+        </div>
+
+        <div class="np-center">
+          <div class="np-controls">
+            <button id="np-prev" class="icon-button">
+              <i class="fas fa-backward"></i>
+            </button>
+            <button id="np-play-pause" class="icon-button">
+              <i class="fas fa-play"></i>
+            </button>
+            <button id="np-next" class="icon-button">
+              <i class="fas fa-forward"></i>
+            </button>
+          </div>
+          <div class="np-seek">
+            <span id="np-time" class="np-time">0:00 / 0:00</span>
+            <input id="np-seekbar" type="range" min="0" max="100" value="0" />
+          </div>
+        </div>
+
+        <div class="np-right">
+          <div class="np-volume">
+            <button id="volume-btn" class="icon-button">
+              <i class="fas fa-volume-high"></i>
+            </button>
+            <div id="volume-slider-container" class="volume-slider-container hidden">
+              <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fullscreen Now Playing -->
+      <div id="np-fullscreen" class="np-fullscreen hidden">
+        <div class="np-fullscreen-inner">
+          <button id="np-fullscreen-close" class="icon-button close-button">
+            <i class="fas fa-times"></i>
+          </button>
+
+          <img id="np-fs-art" class="np-fs-art" src="" alt="Cover" />
+          <div class="np-fs-meta">
+            <h2 id="np-fs-title">–</h2>
+            <p id="np-fs-artist">–</p>
+            <p id="np-fs-album">–</p>
+          </div>
+
+          <div class="np-fs-controls">
+            <button id="np-fs-prev" class="icon-button large">
+              <i class="fas fa-backward"></i>
+            </button>
+            <button id="np-fs-play-pause" class="icon-button large">
+              <i class="fas fa-play"></i>
+            </button>
+            <button id="np-fs-next" class="icon-button large">
+              <i class="fas fa-forward"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Scripts: player logic first, then app logic -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="/player.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>
