@@ -235,43 +235,34 @@
       <!-- Audio element (hidden) -->
       <audio id="audio-player"></audio>
 
-      <!-- Now Playing Bar (bottom) -->
+      <!-- Redesigned Now Playing Bar (NO volume module) -->
       <div id="now-playing-bar" class="now-playing-bar hidden">
-        <div class="np-click-overlay" id="np-click-overlay"></div>
-
-        <div class="np-left">
-          <img id="np-art" class="np-art" src="" alt="Cover" />
-          <div class="np-meta">
-            <div id="np-title" class="np-title">–</div>
-            <div id="np-artist" class="np-artist">–</div>
+        <div class="np-inner">
+          <!-- Left: Art + meta -->
+          <div class="np-left">
+            <img id="np-art" class="np-art" src="" alt="Cover" />
+            <div class="np-meta">
+              <div id="np-title" class="np-title">–</div>
+              <div id="np-artist" class="np-artist">–</div>
+            </div>
           </div>
-        </div>
 
-        <div class="np-center">
-          <div class="np-controls">
-            <button id="np-prev" class="icon-button">
-              <i class="fas fa-backward"></i>
-            </button>
-            <button id="np-play-pause" class="icon-button">
-              <i class="fas fa-play"></i>
-            </button>
-            <button id="np-next" class="icon-button">
-              <i class="fas fa-forward"></i>
-            </button>
-          </div>
-          <div class="np-seek">
-            <span id="np-time" class="np-time">0:00 / 0:00</span>
-            <input id="np-seekbar" type="range" min="0" max="100" value="0" />
-          </div>
-        </div>
-
-        <div class="np-right">
-          <div class="np-volume">
-            <button id="volume-btn" class="icon-button">
-              <i class="fas fa-volume-high"></i>
-            </button>
-            <div id="volume-slider-container" class="volume-slider-container hidden">
-              <input id="volume-slider" type="range" min="0" max="1" step="0.01" value="1" />
+          <!-- Center: Controls + progress -->
+          <div class="np-center">
+            <div class="np-controls">
+              <button id="np-prev" class="icon-button np-control-btn">
+                <i class="fas fa-backward"></i>
+              </button>
+              <button id="np-play-pause" class="icon-button np-control-btn np-play-btn">
+                <i class="fas fa-play"></i>
+              </button>
+              <button id="np-next" class="icon-button np-control-btn">
+                <i class="fas fa-forward"></i>
+              </button>
+            </div>
+            <div class="np-progress">
+              <span id="np-time" class="np-time">0:00 / 0:00</span>
+              <input id="np-seekbar" type="range" min="0" max="100" value="0" />
             </div>
           </div>
         </div>
@@ -307,7 +298,7 @@
     </main>
   </div>
 
-  <!-- Scripts: player logic first, then app logic -->
+  <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
   <script src="/player.js" defer></script>
   <script src="/app.js" defer></script>
