@@ -1,5 +1,3 @@
-// public/player.js
-
 // -------------------- Configuration --------------------
 const RECOMMENDER_CONFIG = {
   embeddingUrl: '/recs/embeddings.json',
@@ -87,9 +85,9 @@ const songCache = new Map();
 
 // Suggestion-based autoplay state
 const suggestionState = {
-  baseSongId: null, // seed song for suggestion API
-  queue: [],        // suggestion IDs
-  index: -1         // current index in queue
+  baseSongId: null,
+  queue: [],
+  index: -1
 };
 
 // -------------------- TF.js recommender --------------------
@@ -356,7 +354,7 @@ async function fetchDiverseCandidate() {
         const res = await fetch(`/api/songs/${r.id}`);
         const json = await res.json();
         s = json.data?.[0];
-        if (s) songCache.set(s.id, s);
+        if (s) songCache.set(r.id, s);
       }
       if (s && prelangs.includes((s.language || '').toLowerCase()) && !excludeIds.has(s.id)) {
         return s;
@@ -417,7 +415,6 @@ async function playNextFromSuggestions() {
     console.log('▶️ Autoplay from suggestions →', nextId);
     await playSong(nextId, { fromAutoplay: true });
 
-    // Update baseSongId to match "last song of array" logic
     suggestionState.baseSongId =
       suggestionState.queue[suggestionState.queue.length - 1] || nextId;
     return;
@@ -482,7 +479,7 @@ async function fallbackFreshSongsWithExclusion() {
       const res = await fetch(`/api/songs/${baseId}`);
       const json = await res.json();
       s = json.data?.[0];
-      if (s) songCache.set(s.id, s);
+      if (s) songCache.set(baseId, s);
     }
 
     const qLang = s?.language || '';
@@ -564,7 +561,6 @@ async function playSong(id, options = {}) {
 
     lastPlayedSongId = id;
 
-    // Only reset suggestions when user explicitly chooses a song
     if (!fromAutoplay && !fromHistory) {
       suggestionState.baseSongId = id;
       suggestionState.queue = [];
@@ -611,16 +607,55 @@ async function playSong(id, options = {}) {
   }
 }
 
+// Highest quality thumbnail for bar image
 function updateNowPlayingUI(s) {
   const primaryArtistNames = (s.artists?.primary || []).map(artist => artist.name);
   const featuredArtistNames = (s.artists?.featured || []).map(artist => artist.name);
   const allArtistsOrdered = [...primaryArtistNames, ...featuredArtistNames];
 
-  const art = s.image?.[1]?.url || '';
+  const images = Array.isArray(s.image) ? s.image : [];
+  const art = images.length ? images[images.length - 1].url : '';
+
   document.getElementById('np-art').src = art;
   document.getElementById('np-title').textContent = decodeHtmlEntities(s.name || '');
   document.getElementById('np-artist').textContent = allArtistsOrdered.join(', ');
   document.getElementById('now-playing-bar').classList.remove('hidden');
+
+  // 🟢 Media Session API: notification/lockscreen info + controls
+  if ('mediaSession' in navigator) {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: decodeHtmlEntities(s.name || ''),
+      artist: allArtistsOrdered.join(', '),
+      album: s.album?.name || s.album || '',
+      artwork: images.map(img => ({
+        src: img.url,
+        sizes: img.quality || '512x512',
+        type: 'image/jpeg'
+      }))
+    });
+
+    // Update playback state
+    navigator.mediaSession.playbackState = audio.paused ? 'paused' : 'playing';
+
+    // Action handlers (tie into your existing functions)
+    navigator.mediaSession.setActionHandler('play', () => {
+      audio.play();
+    });
+    navigator.mediaSession.setActionHandler('pause', () => {
+      audio.pause();
+    });
+    navigator.mediaSession.setActionHandler('previoustrack', () => {
+      if (previouslyPlayed.length > 0) {
+        const prevId = previouslyPlayed.pop();
+        playSong(prevId, { fromHistory: true });
+      }
+    });
+    navigator.mediaSession.setActionHandler('nexttrack', () => {
+      playNextFromSuggestions().catch(err => {
+        console.error('MediaSession nexttrack failed:', err);
+      });
+    });
+  }
 
   const playPauseBtn = document.getElementById('np-play-pause');
   let paused = false;
@@ -662,26 +697,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   recommender.init();
 
   if (audio) audio.addEventListener('ended', onEnded);
-
-  const volumeBtn = document.getElementById('volume-btn');
-  const volumeSliderContainer = document.getElementById('volume-slider-container');
-  const volumeSlider = document.getElementById('volume-slider');
-  if (volumeBtn && volumeSliderContainer && volumeSlider) {
-    volumeBtn.addEventListener('click', () =>
-      volumeSliderContainer.classList.toggle('hidden')
-    );
-    volumeSlider.addEventListener('input', () => {
-      audio.volume = parseFloat(volumeSlider.value);
-    });
-    document.addEventListener('click', e => {
-      if (
-        !volumeBtn.contains(e.target) &&
-        !volumeSliderContainer.contains(e.target)
-      ) {
-        volumeSliderContainer.classList.add('hidden');
-      }
-    });
-  }
 
   const nextBtn = document.getElementById('np-next');
   if (nextBtn)
