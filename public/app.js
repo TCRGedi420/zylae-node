@@ -27,11 +27,9 @@ function applyViewportFromSettings() {
 
   switch (mode) {
     case 'android-phone':
-      // Approx typical Android phone width
       content = 'width=360, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover';
       break;
     case 'ios-phone':
-      // Approx iPhone 13/14 width
       content = 'width=390, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover';
       break;
     case 'android-tv':
@@ -76,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Player related DOM
   const nowPlayingBar = $('#now-playing-bar');
-  const npClickOverlay = $('#np-click-overlay');
 
   const npFs = $('#np-fullscreen');
   const npFsArt = $('#np-fs-art');
@@ -160,7 +157,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Load settings and apply viewport *before* we render too much
   loadSettings();
   applyViewportFromSettings();
   applySettingsToUI();
@@ -202,7 +198,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
       window.ZY_SETTINGS.viewportMode = newMode;
       persistSettings();
-      // Reload to "starting page" with new viewport applied
       window.location.href = '/';
     });
   }
@@ -389,9 +384,18 @@ document.addEventListener('DOMContentLoaded', () => {
     npFs.classList.add('hidden');
   }
 
-  if (npClickOverlay) {
-    npClickOverlay.addEventListener('click', () => {
+  // Make the bar open fullscreen when clicking empty parts of it
+  if (nowPlayingBar) {
+    nowPlayingBar.addEventListener('click', (e) => {
       if (nowPlayingBar.classList.contains('hidden')) return;
+
+      const isOnControls =
+        e.target.closest('.np-controls') ||
+        e.target.closest('.np-volume') ||
+        e.target.closest('#np-seekbar');
+
+      if (isOnControls) return;
+
       openFullscreenNP();
     });
   }
